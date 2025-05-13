@@ -16,6 +16,8 @@ namespace ServerApp
             IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 50001);
             serverSocket.Bind(serverEP);
 
+            Console.WriteLine($"Server je pokrenut i ceka poruku na adresi: {serverEP}");
+
             EndPoint senderEndPoint = new IPEndPoint(IPAddress.Any, 0);
 
             byte[] prijemniBafer = new byte[1024];
