@@ -12,29 +12,46 @@ namespace ServerApp
     {
         static void Main(string[] args)
         {
-            Socket serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            Socket serverSocket = null;
             IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 50001);
-            serverSocket.Bind(serverEP);
-
-            Console.WriteLine($"Server je pokrenut i ceka poruku na adresi: {serverEP}");
-
-            EndPoint senderEndPoint = new IPEndPoint(IPAddress.Any, 0);
-
-            byte[] prijemniBafer = new byte[1024];
 
             while (true)
             {
-                try
+                Console.WriteLine("Unesite protokol koji zelite da koristite ( TCP ili UDP ): ");
+                string protokol = Console.ReadLine();
+
+                if (protokol.ToLower() == "tcp")
                 {
-                    int brBajta = serverSocket.ReceiveFrom(prijemniBafer, ref senderEndPoint);
-                    string poruka = Encoding.UTF8.GetString(prijemniBafer, 0, brBajta);
-                    Console.WriteLine($"Server primio poruku: {poruka}");
+                    serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    serverSocket.Bind(serverEP);
+
+                    serverSocket.Listen(5);
+                    Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {serverEP}");
+
+                    Socket acceptedSocket = serverSocket.Accept();
+                    IPEndPoint clientEP = acceptedSocket.RemoteEndPoint as IPEndPoint;
+                    Console.WriteLine($"Povezao se novi klijent! Njegova adresa je {clientEP}");
+
+                    break;
                 }
-                catch (SocketException ex)
+                else if (protokol.ToLower() == "udp")
                 {
-                    Console.WriteLine(ex);
+                    serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    serverSocket.Bind(serverEP);
+                    Console.WriteLine($"Server je pokrenut i ceka poruku na: {serverEP}");
+
+                    byte[] buffer = new byte[32];
+                    EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                    int received = serverSocket.ReceiveFrom(buffer, ref clientEndPoint);
+
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Uneli ste pogresan naziv protokola, pokusajte ponovo");
                 }
             }
+            Console.ReadLine();
         }
     }
 }
