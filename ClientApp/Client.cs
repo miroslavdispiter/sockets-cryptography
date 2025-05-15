@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -58,6 +59,27 @@ namespace ClientApp
                 {
                     Console.WriteLine("Uneli ste pogresan naziv algoritma za sifrovanje, pokusajte ponovo");
                 }
+            }
+
+            byte[] hash = new byte[1024];
+
+            using (SHA256 sha = SHA256.Create())
+            {
+                hash = sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
+            }
+
+            string hashString = BitConverter.ToString(hash).Replace("-", "");
+            Console.WriteLine("Hesirana vrednost algoritma: " + hashString);
+
+            if (clientSocket.ProtocolType == ProtocolType.Tcp)
+            {
+                clientSocket.Send(hash);
+                Console.WriteLine("Hes poslat TCP serveru.");
+            }
+            else if (clientSocket.ProtocolType == ProtocolType.Udp)
+            {
+                clientSocket.SendTo(hash, serverEP);
+                Console.WriteLine("Hes poslat UDP serveru.");
             }
 
             Console.ReadLine();

@@ -32,6 +32,13 @@ namespace ServerApp
                     IPEndPoint clientEP = acceptedSocket.RemoteEndPoint as IPEndPoint;
                     Console.WriteLine($"Povezao se novi klijent! Njegova adresa je {clientEP}");
 
+                    byte[] baferHash = new byte[32];
+                    int received = acceptedSocket.Receive(baferHash);
+                    Console.WriteLine("Primljen hesiran podatak od klijenta: ");
+
+                    string hashString = BitConverter.ToString(baferHash, 0, received).Replace("-", "");
+                    Console.WriteLine(hashString);
+
                     break;
                 }
                 else if (protokol.ToLower() == "udp")
@@ -43,6 +50,11 @@ namespace ServerApp
                     byte[] buffer = new byte[32];
                     EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
                     int received = serverSocket.ReceiveFrom(buffer, ref clientEndPoint);
+
+                    Console.WriteLine($"Primljen heširani podatak od klijenta {clientEndPoint}:");
+
+                    string hashString = BitConverter.ToString(buffer, 0, received).Replace("-", "");
+                    Console.WriteLine(hashString);
 
                     break;
                 }
