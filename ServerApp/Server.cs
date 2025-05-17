@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -49,6 +50,11 @@ namespace ServerApp
                         int received = acceptedSocket.Receive(baferHash);
                         algoritam = DetermineAlgorithm(baferHash);
                         Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
+
+                        // Pravljenje objekta NacinKomunikacije
+                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, baferHash, algoritam);
+                        Console.WriteLine("Informacije o komunikaciji: ");
+                        Console.WriteLine(komunikacija);
                     }
                     catch (SocketException ex)
                     {
@@ -121,6 +127,36 @@ namespace ServerApp
                 Console.WriteLine("Nepoznat hash algoritam.");
                 return "nepoznat";
             }
+        }
+
+        static NacinKomunikacije NapraviNacinKomunikacije(EndPoint klijentEP, byte[] primljeniPodaci, string algoritam)
+        {
+            string kljuc = "";
+            string dodatneInfo = "";
+
+            if (algoritam == "des")
+            {
+                byte[] key = primljeniPodaci.Skip(32).Take(8).ToArray();
+                byte[] iv = primljeniPodaci.Skip(40).Take(8).ToArray();
+
+                kljuc = Convert.ToBase64String(key);
+                dodatneInfo = Convert.ToBase64String(iv);
+            }
+            else if (algoritam == "rsa")
+            {
+                byte[] publicKeyBytes = primljeniPodaci.Skip(32).ToArray();
+
+                kljuc = Convert.ToBase64String(publicKeyBytes);
+                dodatneInfo = "";
+            }
+
+            return new NacinKomunikacije()
+            {
+                KlijentAdresa = klijentEP,
+                Algoritam = algoritam,
+                Kljuc = kljuc,
+                DodatneInfo = dodatneInfo
+            };
         }
     }
 }
