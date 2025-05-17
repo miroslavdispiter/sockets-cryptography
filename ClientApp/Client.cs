@@ -11,11 +11,12 @@ namespace ClientApp
 {
     internal class Client
     {
+        static string algoritam = string.Empty;
+
         static void Main(string[] args)
         {
             Socket clientSocket = null;
             IPEndPoint serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
-            string algoritam = string.Empty;
 
             while (true)
             {
@@ -61,28 +62,31 @@ namespace ClientApp
                 }
             }
 
+            if (clientSocket.ProtocolType == ProtocolType.Tcp)
+            {
+                clientSocket.Send(SendHash());
+                Console.WriteLine("Hes poslat TCP serveru.");
+            }
+            else if (clientSocket.ProtocolType == ProtocolType.Udp)
+            {
+                clientSocket.SendTo(SendHash(), serverEP);
+                Console.WriteLine("Hes poslat UDP serveru.");
+            }
+
+            Console.ReadLine();
+        }
+
+        static byte[] SendHash()
+        {
             byte[] hash = new byte[1024];
 
             using (SHA256 sha = SHA256.Create())
             {
                 hash = sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
+                //string hashString = BitConverter.ToString(hash).Replace("-", "");
+                //Console.WriteLine("Hesirana vrednost algoritma: " + hashString);
+                return hash;
             }
-
-            string hashString = BitConverter.ToString(hash).Replace("-", "");
-            Console.WriteLine("Hesirana vrednost algoritma: " + hashString);
-
-            if (clientSocket.ProtocolType == ProtocolType.Tcp)
-            {
-                clientSocket.Send(hash);
-                Console.WriteLine("Hes poslat TCP serveru.");
-            }
-            else if (clientSocket.ProtocolType == ProtocolType.Udp)
-            {
-                clientSocket.SendTo(hash, serverEP);
-                Console.WriteLine("Hes poslat UDP serveru.");
-            }
-
-            Console.ReadLine();
         }
     }
 }
