@@ -48,7 +48,7 @@ namespace ClientApp
 
             while (true)
             {
-                Console.WriteLine("Koji algoritam za sifrovanje ce se koristiti? (DES ili RSA): ");
+                Console.WriteLine("\nKoji algoritam za sifrovanje ce se koristiti? (DES ili RSA): ");
                 algoritam = Console.ReadLine();
 
                 if (algoritam.ToLower() == "des" || algoritam.ToLower() == "rsa")
@@ -64,29 +64,57 @@ namespace ClientApp
 
             if (clientSocket.ProtocolType == ProtocolType.Tcp)
             {
-                clientSocket.Send(SendHash());
+                clientSocket.Send(SendCryptoInfo());
                 Console.WriteLine("Hes poslat TCP serveru.");
             }
             else if (clientSocket.ProtocolType == ProtocolType.Udp)
             {
-                clientSocket.SendTo(SendHash(), serverEP);
+                clientSocket.SendTo(SendCryptoInfo(), serverEP);
                 Console.WriteLine("Hes poslat UDP serveru.");
             }
 
             Console.ReadLine();
         }
 
-        static byte[] SendHash()
+        static byte[] SendCryptoInfo()
         {
-            byte[] hash = new byte[1024];
+            List<byte> podaci = new List<byte>();
 
             using (SHA256 sha = SHA256.Create())
             {
-                hash = sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
-                //string hashString = BitConverter.ToString(hash).Replace("-", "");
-                //Console.WriteLine("Hesirana vrednost algoritma: " + hashString);
-                return hash;
+                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
+                podaci.AddRange(hash);
+                //Console.WriteLine("Hesirana vrednost algoritma: " + BitConverter.ToString(hash).Replace("-", ""));
             }
+
+            if (algoritam.ToLower() == "des")
+            {
+                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
+                {
+                    des.GenerateKey();
+                    des.GenerateIV();
+
+                    podaci.AddRange(des.Key);
+                    podaci.AddRange(des.IV);
+
+                    //Console.WriteLine("DES kljuc: " + BitConverter.ToString(des.Key));
+                    //Console.WriteLine("DES IV: " + BitConverter.ToString(des.IV));
+                }
+            }
+            else if (algoritam.ToLower() == "rsa")
+            {
+                using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
+                {
+                    string publicKeyXml = rsa.ToXmlString(false);
+
+                    byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKeyXml);
+
+                    podaci.AddRange(publicKeyBytes);
+
+                    //Console.WriteLine("RSA javni kljuc: " + publicKeyXml);
+                }
+            }
+            return podaci.ToArray();
         }
     }
 }

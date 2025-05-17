@@ -43,14 +43,17 @@ namespace ServerApp
                     Console.WriteLine($"Povezao se novi klijent! Njegova adresa je {clientEP}");
 
                     // Primanje hasha
-
-                    byte[] baferHash = new byte[32];
-                    int received = acceptedSocket.Receive(baferHash);
-                    Console.WriteLine("Primljen hesiran podatak od klijenta.");
-
-                    algoritam = DetermineAlgorithm(baferHash);
-                    Console.WriteLine($"Koristimo {algoritam.ToUpper()} algoritam.");
-
+                    byte[] baferHash = new byte[48];
+                    try
+                    {
+                        int received = acceptedSocket.Receive(baferHash);
+                        algoritam = DetermineAlgorithm(baferHash);
+                        Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
+                    }
+                    catch (SocketException ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                     break;
                 }
                 else if (protokol.ToLower() == "udp")
@@ -60,16 +63,20 @@ namespace ServerApp
                     serverSocket.Bind(serverEP);
                     Console.WriteLine($"Server je pokrenut i ceka poruku na: {serverEP}");
 
-                    byte[] baferHash = new byte[32];
-                    EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                    int received = serverSocket.ReceiveFrom(baferHash, ref clientEndPoint);
-
-                    Console.WriteLine($"Primljen heširani podatak od klijenta {clientEndPoint}:");
-
                     // Primanje hasha
-                    algoritam = DetermineAlgorithm(baferHash);
-                    Console.WriteLine($"Koristimo {algoritam.ToUpper()} algoritam.");
-
+                    EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                    byte[] baferHash = new byte[1024];
+                    try
+                    {
+                        int received = serverSocket.ReceiveFrom(baferHash, ref clientEndPoint);
+                        //Console.WriteLine($"Primljen heširani podatak od klijenta {clientEndPoint}.");
+                        algoritam = DetermineAlgorithm(baferHash);
+                        Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
+                    }
+                    catch(SocketException ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
                     break;
                 }
                 else
@@ -97,8 +104,9 @@ namespace ServerApp
 
         static string DetermineAlgorithm(byte[] receivedHash)
         {
-            string hashString = BitConverter.ToString(receivedHash).Replace("-", "");
-            Console.WriteLine($"Primljen hash: {hashString}");
+            byte[] first32Bytes = receivedHash.Take(32).ToArray();
+            string hashString = BitConverter.ToString(first32Bytes).Replace("-", "");
+            //Console.WriteLine($"\nPrimljena hesirana vrednost: {hashString}");
 
             if (hashString == desHash)
             {
