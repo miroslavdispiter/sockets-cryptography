@@ -44,15 +44,16 @@ namespace ServerApp
                     Console.WriteLine($"Povezao se novi klijent! Njegova adresa je {clientEP}");
 
                     // Primanje hasha
-                    byte[] baferHash = new byte[48];
+                    byte[] baferHash = new byte[1024];
                     try
                     {
                         int received = acceptedSocket.Receive(baferHash);
-                        algoritam = DetermineAlgorithm(baferHash);
+                        byte[] validData = baferHash.Take(received).ToArray();
+                        algoritam = DetermineAlgorithm(validData);
                         Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
 
                         // Pravljenje objekta NacinKomunikacije
-                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, baferHash, algoritam);
+                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, validData, algoritam);
                         Console.WriteLine("Informacije o komunikaciji: ");
                         Console.WriteLine(komunikacija);
                     }
@@ -71,15 +72,21 @@ namespace ServerApp
 
                     // Primanje hasha
                     EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
-                    byte[] baferHash = new byte[1024];
+                    byte[] baferHash = new byte[4096];
                     try
                     {
                         int received = serverSocket.ReceiveFrom(baferHash, ref clientEndPoint);
                         //Console.WriteLine($"Primljen heširani podatak od klijenta {clientEndPoint}.");
-                        algoritam = DetermineAlgorithm(baferHash);
+                        byte[] validData = baferHash.Take(received).ToArray();
+                        algoritam = DetermineAlgorithm(validData);
                         Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
+
+                        // Pravljenje objekta NacinKomunikacije
+                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(clientEndPoint, validData, algoritam);
+                        Console.WriteLine("Informacije o komunikaciji: ");
+                        Console.WriteLine(komunikacija); 
                     }
-                    catch(SocketException ex)
+                    catch (SocketException ex)
                     {
                         Console.WriteLine(ex);
                     }
