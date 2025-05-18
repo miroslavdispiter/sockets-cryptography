@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -73,7 +74,27 @@ namespace ClientApp
                 Console.WriteLine("Hes poslat UDP serveru.");
             }
 
-            Console.ReadLine();
+            try
+            {
+                Console.WriteLine("\nUnesite poruku: ");
+                string poruka = Console.ReadLine();
+                byte[] kljuc = SendCryptoInfo().Skip(32).Take(8).ToArray();
+                byte[] iv = SendCryptoInfo().Skip(40).Take(8).ToArray();
+
+                DesAlgorithm desAlg = new DesAlgorithm(poruka, kljuc, iv);
+
+                byte[] enkriptovanaPoruka = desAlg.Encrypt();
+                Console.WriteLine("Enkriptovana poruka (Base64): " + Convert.ToBase64String(enkriptovanaPoruka));
+
+                string dekriptovana = desAlg.Decrypt(enkriptovanaPoruka);
+                Console.WriteLine("Dekriptovana poruka: " + dekriptovana);
+
+                Console.ReadLine();
+            }
+            catch (SocketException ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
 
         static byte[] SendCryptoInfo()
