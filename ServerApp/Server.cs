@@ -1,4 +1,5 @@
 ﻿using Common;
+using Common.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,8 @@ namespace ServerApp
 {
     internal class Server
     {
-        static readonly IPEndPoint serverEP = new IPEndPoint(IPAddress.Any, 50001);
+        static readonly IPEndPoint tcp_serverEP = new IPEndPoint(IPAddress.Any, 50001);
+        static readonly IPEndPoint udp_serverEP = new IPEndPoint(IPAddress.Any, 50002);
         static string desHash;
         static string rsaHash;
 
@@ -21,7 +23,7 @@ namespace ServerApp
         {
             Socket serverSocket = null;
 
-            GenerateAlgotithmHashes(out desHash, out rsaHash);
+            GenerateAlgorithmHashes.GenerateHash(out desHash, out rsaHash);
 
             string algoritam = string.Empty;
 
@@ -34,10 +36,10 @@ namespace ServerApp
                 {
                     // Povezivanje
                     serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                    serverSocket.Bind(serverEP);
+                    serverSocket.Bind(tcp_serverEP);
 
                     serverSocket.Listen(5);
-                    Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {serverEP}");
+                    Console.WriteLine($"Server je stavljen u stanje osluskivanja i ocekuje komunikaciju na {tcp_serverEP}");
 
                     Socket acceptedSocket = serverSocket.Accept();
                     IPEndPoint clientEP = acceptedSocket.RemoteEndPoint as IPEndPoint;
@@ -49,11 +51,11 @@ namespace ServerApp
                     {
                         int received = acceptedSocket.Receive(baferHash);
                         byte[] validData = baferHash.Take(received).ToArray();
-                        algoritam = DetermineAlgorithm(validData);
+                        algoritam = AlgorithmDetector.DetermineAlgorithm(validData, desHash, rsaHash);
                         Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
 
                         // Pravljenje objekta NacinKomunikacije
-                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, validData, algoritam);
+                        NacinKomunikacije komunikacija = KomunikacijaHelper.NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, validData, algoritam);
                         Console.WriteLine("Informacije o komunikaciji: ");
                         Console.WriteLine(komunikacija);
                     }
@@ -67,8 +69,8 @@ namespace ServerApp
                 {
                     // Povezivanje
                     serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    serverSocket.Bind(serverEP);
-                    Console.WriteLine($"Server je pokrenut i ceka poruku na: {serverEP}");
+                    serverSocket.Bind(udp_serverEP);
+                    Console.WriteLine($"Server je pokrenut i ceka poruku na: {udp_serverEP}");
 
                     // Primanje hasha
                     EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
@@ -78,11 +80,11 @@ namespace ServerApp
                         int received = serverSocket.ReceiveFrom(baferHash, ref clientEndPoint);
                         //Console.WriteLine($"Primljen heširani podatak od klijenta {clientEndPoint}.");
                         byte[] validData = baferHash.Take(received).ToArray();
-                        algoritam = DetermineAlgorithm(validData);
+                        algoritam = AlgorithmDetector.DetermineAlgorithm(validData, desHash, rsaHash);
                         Console.WriteLine($"\nKoristimo {algoritam.ToUpper()} algoritam.");
 
                         // Pravljenje objekta NacinKomunikacije
-                        NacinKomunikacije komunikacija = NapraviNacinKomunikacije(clientEndPoint, validData, algoritam);
+                        NacinKomunikacije komunikacija = KomunikacijaHelper.NapraviNacinKomunikacije(clientEndPoint, validData, algoritam);
                         Console.WriteLine("Informacije o komunikaciji: ");
                         Console.WriteLine(komunikacija); 
                     }
@@ -98,72 +100,6 @@ namespace ServerApp
                 }
             }
             Console.ReadLine();
-        }
-
-        static void GenerateAlgotithmHashes(out string desHashOut, out string rsaHashOut)
-        {
-            byte[] hashDes = new byte[1024];
-            byte[] hashRsa = new byte[1024];
-
-            using (SHA256 sha = SHA256.Create())
-            {
-                hashDes = sha.ComputeHash(Encoding.UTF8.GetBytes("des"));
-                hashRsa = sha.ComputeHash(Encoding.UTF8.GetBytes("rsa"));
-            }
-
-            desHashOut = BitConverter.ToString(hashDes).Replace("-", "");
-            rsaHashOut = BitConverter.ToString(hashRsa).Replace("-", "");
-        }
-
-        static string DetermineAlgorithm(byte[] receivedHash)
-        {
-            byte[] first32Bytes = receivedHash.Take(32).ToArray();
-            string hashString = BitConverter.ToString(first32Bytes).Replace("-", "");
-            //Console.WriteLine($"\nPrimljena hesirana vrednost: {hashString}");
-
-            if (hashString == desHash)
-            {
-                return "des";
-            }
-            else if (hashString == rsaHash)
-            {
-                return "rsa";
-            }
-            else
-            {
-                Console.WriteLine("Nepoznat hash algoritam.");
-                return "nepoznat";
-            }
-        }
-
-        static NacinKomunikacije NapraviNacinKomunikacije(EndPoint klijentEP, byte[] primljeniPodaci, string algoritam)
-        {
-            string kljuc = "";
-            string dodatneInfo = "";
-
-            if (algoritam == "des")
-            {
-                byte[] key = primljeniPodaci.Skip(32).Take(8).ToArray();
-                byte[] iv = primljeniPodaci.Skip(40).Take(8).ToArray();
-
-                kljuc = Convert.ToBase64String(key);
-                dodatneInfo = Convert.ToBase64String(iv);
-            }
-            else if (algoritam == "rsa")
-            {
-                byte[] publicKeyBytes = primljeniPodaci.Skip(32).ToArray();
-
-                kljuc = Convert.ToBase64String(publicKeyBytes);
-                dodatneInfo = "";
-            }
-
-            return new NacinKomunikacije()
-            {
-                KlijentAdresa = klijentEP,
-                Algoritam = algoritam,
-                Kljuc = kljuc,
-                DodatneInfo = dodatneInfo
-            };
         }
     }
 }

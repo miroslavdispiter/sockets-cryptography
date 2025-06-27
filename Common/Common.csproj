@@ -47,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CryptoAlgorithms\DesAlgorithm.cs" />
+    <Compile Include="Helpers\AlgorithmDetector.cs" />
+    <Compile Include="Helpers\GenerateAlgorithmHashes.cs" />
+    <Compile Include="Helpers\KomunikacijaHelper.cs" />
     <Compile Include="Models\NacinKomunikacije.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
