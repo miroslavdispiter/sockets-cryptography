@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using static ClientApp.UserInput;
 
 namespace ClientApp
 {
@@ -17,50 +18,29 @@ namespace ClientApp
         static void Main(string[] args)
         {
             Socket clientSocket = null;
-            IPEndPoint serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
+            IPEndPoint tcp_serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
+            IPEndPoint udp_serverEP = new IPEndPoint(IPAddress.Loopback, 50002);    // ovo podesiti i na serveru
 
-            while (true)
+            string protokol = IzaberiProtokol();
+
+            if (protokol == "TCP")
             {
-                Console.WriteLine("Koji protokol koristi server? (TCP ili UDP): ");
-                string protokol = Console.ReadLine();
+                clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
-                if (protokol.ToLower() == "tcp")
-                {
-                    clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
-                    clientSocket.Connect(serverEP);
-                    Console.WriteLine("Klijent je uspesno povezan sa serverom!");
-
-                    break;
-                }
-                else if (protokol.ToLower() == "udp")
-                {
-                    clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    Console.WriteLine("Mozete slati poruke preko UDP protokola!");
-
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("Uneli ste pogresan naziv protokola, pokusajte ponovo");
-                    continue;
-                }
+                clientSocket.Connect(tcp_serverEP);
+                Console.WriteLine("Klijent je uspesno povezan sa serverom!");
+            }
+            else if (protokol == "UDP")
+            {
+                clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                Console.WriteLine("Mozete slati poruke preko UDP protokola!");
             }
 
-            while (true)
-            {
-                Console.WriteLine("\nKoji algoritam za sifrovanje ce se koristiti? (DES ili RSA): ");
-                algoritam = Console.ReadLine();
+            algoritam = IzaberiAlgoritam();
 
-                if (algoritam.ToLower() == "des" || algoritam.ToLower() == "rsa")
-                {
-                    Console.WriteLine($"Izabrani algoritam: {algoritam}");
-                    break;
-                }
-                else
-                {
-                    Console.WriteLine("Uneli ste pogresan naziv algoritma za sifrovanje, pokusajte ponovo");
-                }
+            if (algoritam == "DES" || algoritam == "RSA")
+            {
+                Console.WriteLine($"Izabrani algoritam: {algoritam}");
             }
 
             if (clientSocket.ProtocolType == ProtocolType.Tcp)
@@ -70,7 +50,7 @@ namespace ClientApp
             }
             else if (clientSocket.ProtocolType == ProtocolType.Udp)
             {
-                clientSocket.SendTo(SendCryptoInfo(), serverEP);
+                clientSocket.SendTo(SendCryptoInfo(), udp_serverEP);
                 Console.WriteLine("Hes poslat UDP serveru.");
             }
 
