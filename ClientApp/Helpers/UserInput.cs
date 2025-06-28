@@ -22,8 +22,10 @@ namespace ClientApp
                 switch (izbor)
                 {
                     case "1":
+                        Console.WriteLine("\nIzabrani protokol: TCP");
                         return "TCP";
                     case "2":
+                        Console.WriteLine("\nIzabrani protokol: UDP");
                         return "UDP";
                     default:
                         Console.WriteLine("Nepoznat unos. Pokusaj ponovo.");
@@ -46,8 +48,10 @@ namespace ClientApp
                 switch (izbor)
                 {
                     case "1":
+                        Console.WriteLine("\nIzabrani algoritam: DES");
                         return "DES";
                     case "2":
+                        Console.WriteLine("\nIzabrani algoritam: RSA");
                         return "RSA";
                     default:
                         Console.WriteLine("Nepoznat unos. Pokusaj ponovo.");

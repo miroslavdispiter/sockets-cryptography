@@ -13,11 +13,19 @@ namespace Common.Helpers
         {
             using (SHA256 sha = SHA256.Create())
             {
-                byte[] desBytes = sha.ComputeHash(Encoding.UTF8.GetBytes("des"));
-                byte[] rsaBytes = sha.ComputeHash(Encoding.UTF8.GetBytes("rsa"));
+                byte[] desBytes = sha.ComputeHash(Encoding.UTF8.GetBytes("DES"));
+                byte[] rsaBytes = sha.ComputeHash(Encoding.UTF8.GetBytes("RSA"));
 
-                desHash = Convert.ToBase64String(desBytes);
-                rsaHash = Convert.ToBase64String(rsaBytes);
+                desHash = BitConverter.ToString(desBytes).Replace("-", "");
+                rsaHash = BitConverter.ToString(rsaBytes).Replace("-", "");
+            }
+        }
+
+        public static byte[] ComputeSHA256Hash(string algoritam)
+        {
+            using (SHA256 sha = SHA256.Create())
+            {
+                return sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
             }
         }
     }

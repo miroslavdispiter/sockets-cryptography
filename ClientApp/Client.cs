@@ -1,4 +1,5 @@
 ﻿using Common;
+using Common.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,7 +14,6 @@ namespace ClientApp
 {
     internal class Client
     {
-        static string algoritam = string.Empty;
 
         static void Main(string[] args)
         {
@@ -36,25 +36,22 @@ namespace ClientApp
                 Console.WriteLine("Mozete slati poruke preko UDP protokola!");
             }
 
-            algoritam = IzaberiAlgoritam();
+            string algoritam = IzaberiAlgoritam();
 
-            if (algoritam == "DES" || algoritam == "RSA")
-            {
-                Console.WriteLine($"Izabrani algoritam: {algoritam}");
-            }
+            byte[] cryptoPayload = CryptoInfoGenerator.GenerateCryptoPayload(algoritam);
 
             if (clientSocket.ProtocolType == ProtocolType.Tcp)
             {
-                clientSocket.Send(SendCryptoInfo());
+                clientSocket.Send(cryptoPayload);
                 Console.WriteLine("Hes poslat TCP serveru.");
             }
             else if (clientSocket.ProtocolType == ProtocolType.Udp)
             {
-                clientSocket.SendTo(SendCryptoInfo(), udp_serverEP);
+                clientSocket.SendTo(cryptoPayload, udp_serverEP);
                 Console.WriteLine("Hes poslat UDP serveru.");
             }
 
-            try
+            /*try
             {
                 Console.WriteLine("\nUnesite poruku: ");
                 string poruka = Console.ReadLine();
@@ -74,48 +71,7 @@ namespace ClientApp
             catch (SocketException ex)
             {
                 Console.WriteLine(ex);
-            }
-        }
-
-        static byte[] SendCryptoInfo()
-        {
-            List<byte> podaci = new List<byte>();
-
-            using (SHA256 sha = SHA256.Create())
-            {
-                byte[] hash = sha.ComputeHash(Encoding.UTF8.GetBytes(algoritam));
-                podaci.AddRange(hash);
-                //Console.WriteLine("Hesirana vrednost algoritma: " + BitConverter.ToString(hash).Replace("-", ""));
-            }
-
-            if (algoritam.ToLower() == "des")
-            {
-                using (DESCryptoServiceProvider des = new DESCryptoServiceProvider())
-                {
-                    des.GenerateKey();
-                    des.GenerateIV();
-
-                    podaci.AddRange(des.Key);
-                    podaci.AddRange(des.IV);
-
-                    //Console.WriteLine("DES kljuc: " + BitConverter.ToString(des.Key));
-                    //Console.WriteLine("DES IV: " + BitConverter.ToString(des.IV));
-                }
-            }
-            else if (algoritam.ToLower() == "rsa")
-            {
-                using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
-                {
-                    string publicKeyXml = rsa.ToXmlString(false);
-
-                    byte[] publicKeyBytes = Encoding.UTF8.GetBytes(publicKeyXml);
-
-                    podaci.AddRange(publicKeyBytes);
-
-                    //Console.WriteLine("RSA javni kljuc: " + publicKeyXml);
-                }
-            }
-            return podaci.ToArray();
+            }*/
         }
     }
 }

@@ -12,6 +12,7 @@ namespace Common.Helpers
         {
             byte[] first32Bytes = receivedHash.Take(32).ToArray();
             string hashString = BitConverter.ToString(first32Bytes).Replace("-", "");
+            Console.WriteLine($"\n\n{hashString}");
 
             if (hashString == desHash)
             {
