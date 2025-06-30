@@ -28,6 +28,8 @@ namespace ServerApp.Services
             NacinKomunikacije komunikacija = KomunikacijaHelper.NapraviNacinKomunikacije(acceptedSocket.RemoteEndPoint, validData, algoritam);
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
+
+            NetworkCommunicatorServer.SendAndReceiveMessageTCP(acceptedSocket, validData);
         }
 
         public static void HandleUdp(Socket udpSocket, string desHash, string rsaHash)
@@ -43,6 +45,8 @@ namespace ServerApp.Services
             NacinKomunikacije komunikacija = KomunikacijaHelper.NapraviNacinKomunikacije(clientEP, validData, algoritam);
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
+
+            NetworkCommunicatorServer.SendAndReceiveMessageUDP(udpSocket, validData);
         }
     }
 }

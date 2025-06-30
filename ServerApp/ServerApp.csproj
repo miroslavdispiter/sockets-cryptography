@@ -46,6 +46,7 @@
     <Compile Include="Services\CommunicationHandler.cs" />
     <Compile Include="Server.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Services\NetworkCommunicatorServer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
