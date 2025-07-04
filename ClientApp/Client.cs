@@ -45,13 +45,13 @@ namespace ClientApp
             {
                 clientSocket.Send(cryptoPayload);
                 Console.WriteLine("Hes poslat TCP serveru.");
-                NetworkCommunicatorClient.SendAndReceiveMessage(clientSocket, cryptoPayload, protokol);
+                NetworkCommunicatorClient.SendAndReceiveMessage(clientSocket, cryptoPayload, protokol, algoritam);
             }
             else if (clientSocket.ProtocolType == ProtocolType.Udp)
             {
                 clientSocket.SendTo(cryptoPayload, udp_serverEP);
                 Console.WriteLine("Hes poslat UDP serveru.");
-                NetworkCommunicatorClient.SendAndReceiveMessage(clientSocket, cryptoPayload, protokol);
+                NetworkCommunicatorClient.SendAndReceiveMessage(clientSocket, cryptoPayload, protokol, algoritam);
             }
             
             Console.ReadLine();

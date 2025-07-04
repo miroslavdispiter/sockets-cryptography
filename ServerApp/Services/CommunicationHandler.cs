@@ -29,7 +29,7 @@ namespace ServerApp.Services
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
 
-            NetworkCommunicatorServer.SendAndReceiveMessageTCP(acceptedSocket, validData);
+            NetworkCommunicatorServer.SendAndReceiveMessageTCP(acceptedSocket, validData, algoritam);
         }
 
         public static void HandleUdp(Socket udpSocket, string desHash, string rsaHash)
@@ -46,7 +46,7 @@ namespace ServerApp.Services
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
 
-            NetworkCommunicatorServer.SendAndReceiveMessageUDP(udpSocket, validData);
+            NetworkCommunicatorServer.SendAndReceiveMessageUDP(udpSocket, validData, algoritam);
         }
     }
 }
