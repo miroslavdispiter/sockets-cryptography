@@ -1,11 +1,10 @@
-﻿using Common;
-using Common.Helpers;
+﻿using Common.Helpers;
 using ServerApp.Services;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Linq;
 
 namespace ServerApp
 {
@@ -13,13 +12,14 @@ namespace ServerApp
     {
         static readonly IPEndPoint tcp_serverEP = new IPEndPoint(IPAddress.Loopback, 50001);
         static readonly IPEndPoint udp_serverEP = new IPEndPoint(IPAddress.Loopback, 50002);
+
         static void Main(string[] args)
         {
-            Socket serverSocket = null;
-            string desHash;
-            string rsaHash;
+            byte[] desHashBytes = GenerateAlgorithmHashes.ComputeSHA256Hash("DES");
+            byte[] rsaHashBytes = GenerateAlgorithmHashes.ComputeSHA256Hash("RSA");
 
-            GenerateAlgorithmHashes.GenerateHash(out desHash, out rsaHash);
+            string desHash = GenerateAlgorithmHashes.ToHexString(desHashBytes);
+            string rsaHash = GenerateAlgorithmHashes.ToHexString(rsaHashBytes);
 
             Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             tcpSocket.Bind(tcp_serverEP);
@@ -36,12 +36,12 @@ namespace ServerApp
 
             if (activeSocket == tcpSocket)
             {
-                CommunicationHandler.HandleTcp(tcpSocket, desHash, rsaHash);
+                ServerCommunicationHandler.HandleTcp(tcpSocket, desHash, rsaHash);
                 udpSocket.Close();
             }
             else if (activeSocket == udpSocket)
             {
-                CommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
+                ServerCommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
                 tcpSocket.Close();
             }
 

@@ -46,7 +46,8 @@
     <Compile Include="Client.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Helpers\UserInput.cs" />
-    <Compile Include="Services\NetworkCommunicatorClient.cs" />
+    <Compile Include="Services\ClientCommunicationHandler.cs" />
+    <Compile Include="Services\ClientNetworkCommunicator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

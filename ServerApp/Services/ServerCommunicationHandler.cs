@@ -1,16 +1,17 @@
-﻿using Common;
-using Common.Helpers;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Sockets;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Common.Helpers;
+using Common.Models;
+using Common;
 
 namespace ServerApp.Services
 {
-    public static class CommunicationHandler
+    public static class ServerCommunicationHandler
     {
         public static void HandleTcp(Socket tcpSocket, string desHash, string rsaHash)
         {
@@ -29,7 +30,7 @@ namespace ServerApp.Services
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
 
-            NetworkCommunicatorServer.SendAndReceiveMessageTCP(acceptedSocket, validData, algoritam);
+            ServerNetworkCommunicator.SendAndReceiveMessageTCP(acceptedSocket, validData, algoritam);
         }
 
         public static void HandleUdp(Socket udpSocket, string desHash, string rsaHash)
@@ -46,7 +47,7 @@ namespace ServerApp.Services
             Console.WriteLine("Informacije o komunikaciji: ");
             Console.WriteLine(komunikacija);
 
-            NetworkCommunicatorServer.SendAndReceiveMessageUDP(udpSocket, validData, algoritam);
+            ServerNetworkCommunicator.SendAndReceiveMessageUDP(udpSocket, validData, algoritam);
         }
     }
 }

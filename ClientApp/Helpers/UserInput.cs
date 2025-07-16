@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ClientApp
+namespace ClientApp.Helpers
 {
     public static class UserInput
     {

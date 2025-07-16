@@ -13,11 +13,8 @@ namespace Common.Helpers
 
         public static byte[] GeneratePublicKeyBytes()
         {
-            using (RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048))
-            {
-                string publicKeyXml = rsa.ToXmlString(false);
-                return Encoding.UTF8.GetBytes(publicKeyXml);
-            }
+            string publicKeyXml = rsa.ToXmlString(false);
+            return Encoding.UTF8.GetBytes(publicKeyXml);
         }
 
         public static string GetPrivateKeyXml()

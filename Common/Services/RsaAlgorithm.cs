@@ -1,35 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading.Tasks;
 
-namespace Common.Helpers
+namespace Common.Services
 {
-    public static class RSAEncryptionService
+    public class RsaAlgorithm
     {
-        private static RSACryptoServiceProvider rsa = new RSACryptoServiceProvider(2048);
+        public string Poruka { get; set; }
+        public string Ključ { get; set; }
 
-        public static string PublicKey => rsa.ToXmlString(false);
-        public static string PrivateKey => rsa.ToXmlString(true);
-
-        public static string Encrypt(string plainText, string publicKey)
+        public RsaAlgorithm(string poruka, string kljuc)
         {
-            using (var rsaEncryptor = new RSACryptoServiceProvider(2048))
+            Poruka = poruka;
+            Ključ = kljuc;
+        }
+
+        public string Encrypt()
+        {
+            using (var rsa = new RSACryptoServiceProvider(2048))
             {
-                rsaEncryptor.FromXmlString(publicKey);
-                var data = Encoding.UTF8.GetBytes(plainText);
-                var encrypted = rsaEncryptor.Encrypt(data, false);
-                return Convert.ToBase64String(encrypted);
+                rsa.FromXmlString(Ključ);
+                byte[] podaci = Encoding.UTF8.GetBytes(Poruka);
+                byte[] enkriptovani = rsa.Encrypt(podaci, false);
+                return Convert.ToBase64String(enkriptovani);
             }
         }
 
-        public static string Decrypt(string cipherTextBase64, string privateKey)
+        public string Decrypt()
         {
-            using (var rsaDecryptor = new RSACryptoServiceProvider(2048))
+            using (var rsa = new RSACryptoServiceProvider(2048))
             {
-                rsaDecryptor.FromXmlString(privateKey);
-                var data = Convert.FromBase64String(cipherTextBase64);
-                var decrypted = rsaDecryptor.Decrypt(data, false);
-                return Encoding.UTF8.GetString(decrypted);
+                rsa.FromXmlString(Ključ);
+                byte[] podaci = Convert.FromBase64String(Poruka);
+                byte[] dekriptovani = rsa.Decrypt(podaci, false);
+                return Encoding.UTF8.GetString(dekriptovani);
             }
         }
     }

@@ -5,7 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Common
+namespace Common.Models
 {
     public class NacinKomunikacije
     {
