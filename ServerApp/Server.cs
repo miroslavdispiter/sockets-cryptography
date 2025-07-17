@@ -36,14 +36,16 @@ namespace ServerApp
 
             if (activeSocket == tcpSocket)
             {
-                ServerCommunicationHandler.HandleTcp(tcpSocket, desHash, rsaHash);
                 udpSocket.Close();
+                ServerCommunicationHandler.HandleTcp(tcpSocket, desHash, rsaHash);
             }
             else if (activeSocket == udpSocket)
             {
-                ServerCommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
                 tcpSocket.Close();
+                ServerCommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
             }
+
+            StatisticsManager.PrikaziStatistiku();
 
             Console.ReadLine();
         }
