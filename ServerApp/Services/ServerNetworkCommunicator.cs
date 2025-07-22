@@ -22,7 +22,7 @@ namespace ServerApp.Services
                 {
                     try
                     {
-                        Console.WriteLine("\n==================== SERVER TCP [DES] KOMUNIKACIJA ====================");
+                        Console.WriteLine("\n\n\n\n\n================================================================");
 
                         byte[] buffer = new byte[4096];
                         byte[] kljuc = cryptoPayload.Skip(32).Take(8).ToArray();
@@ -44,21 +44,20 @@ namespace ServerApp.Services
 
                         Console.WriteLine($"\n>> Dekriptovana poruka:");
                         Console.WriteLine(decryptedMessage);
-                        Console.WriteLine($">> Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
+                        Console.WriteLine($"\nINFO: Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
 
                         StatisticsManager.DodajStatistiku("DES", decryptedMessage.Length, stopwatch.Elapsed.TotalMilliseconds);
 
-                        Console.WriteLine("\n>> Unesite eho poruku koju želite da pošaljete nazad klijentu:");
-                        string echoMessage = Console.ReadLine();
+                        string echoMessage = $"\"Primio sam poruku: {decryptedMessage}\"";
+                        Console.WriteLine($"\nINFO: Automatski šaljem eho poruku: {echoMessage}");
 
                         DesAlgorithm desAlgEcho = new DesAlgorithm(echoMessage, kljuc, iv);
                         byte[] encryptedMessage = desAlgEcho.Encrypt();
                         string base64EchoMessage = Convert.ToBase64String(encryptedMessage);
 
-                        Console.WriteLine("\n>> Enkriptovana eho poruka (Base64):");
-                        Console.WriteLine(base64EchoMessage);
-
                         serverSocket.Send(Encoding.UTF8.GetBytes(base64EchoMessage));
+                        Console.WriteLine("INFO: Enkriptovani odgovor je poslat klijentu.");
+                        JeKraj();
 
                         Console.WriteLine("\n================================================================\n");
                     }
@@ -72,23 +71,23 @@ namespace ServerApp.Services
                 {
                     try
                     {
-                        Console.WriteLine("\n==================== SERVER TCP [RSA] KOMUNIKACIJA ====================");
+                        Console.WriteLine("\n\n\n\n\n================================================================");
 
                         byte[] buffer = new byte[4096];
 
                         int brBajta = serverSocket.Receive(buffer);
                         string clientPublicKeyBase64 = Encoding.UTF8.GetString(buffer, 0, brBajta);
                         string clientPublicKeyXml = Encoding.UTF8.GetString(Convert.FromBase64String(clientPublicKeyBase64));
-                        Console.WriteLine("\n>> Primljen javni ključ od klijenta.");
+                        Console.WriteLine("\nINFO: Primljen javni ključ od klijenta.");
 
                         string serverPublicKeyXml = RsaCryptoHelper.GetPublicKeyXml();
                         string serverPublicKeyBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(serverPublicKeyXml));
                         serverSocket.Send(Encoding.UTF8.GetBytes(serverPublicKeyBase64));
-                        Console.WriteLine(">> Server je poslao svoj javni ključ klijentu.");
+                        Console.WriteLine("INFO: Server je poslao svoj javni ključ klijentu.");
 
                         brBajta = serverSocket.Receive(buffer);
                         string encryptedMessage = Encoding.UTF8.GetString(buffer, 0, brBajta);
-                        Console.WriteLine("\n>> Primljena enkriptovana poruka od klijenta.");
+                        Console.WriteLine("\nINFO: Primljena enkriptovana poruka od klijenta.");
 
                         var stopwatch = new Stopwatch();
                         stopwatch.Start();
@@ -99,20 +98,21 @@ namespace ServerApp.Services
 
                         stopwatch.Stop();
 
-                        Console.WriteLine(">> Dekriptovana poruka klijenta:");
+                        Console.WriteLine("\n>> Dekriptovana poruka klijenta:");
                         Console.WriteLine(decryptedMessage);
-                        Console.WriteLine($">> Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
+                        Console.WriteLine($"\nINFO: Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
 
                         StatisticsManager.DodajStatistiku("RSA", decryptedMessage.Length, stopwatch.Elapsed.TotalMilliseconds);
 
-                        Console.Write("\n>> Unesite eho poruku za slanje klijentu: ");
-                        string echoMessage = Console.ReadLine();
+                        string echoMessage = $"\"Primio sam poruku: {decryptedMessage}\"";
+                        Console.WriteLine($"\nINFO: Automatski šaljem eho poruku: {echoMessage}");
 
                         var rsaEncryptor = new RsaAlgorithm(echoMessage, clientPublicKeyXml);
                         string encryptedResponse = rsaEncryptor.Encrypt();
 
                         serverSocket.Send(Encoding.UTF8.GetBytes(encryptedResponse));
-                        Console.WriteLine(">> Enkriptovani odgovor je poslat klijentu.");
+                        Console.WriteLine("INFO: Enkriptovani odgovor je poslat klijentu.");
+                        JeKraj();
 
                         Console.WriteLine("\n=====================================================================");
                     }
@@ -135,7 +135,7 @@ namespace ServerApp.Services
                 {
                     try
                     {
-                        Console.WriteLine("\n==================== SERVER UDP [DES] KOMUNIKACIJA ====================");
+                        Console.WriteLine("\n\n\n\n\n================================================================");
 
                         byte[] kljuc = cryptoPayload.Skip(32).Take(8).ToArray();
                         byte[] iv = cryptoPayload.Skip(40).Take(8).ToArray();
@@ -156,21 +156,20 @@ namespace ServerApp.Services
 
                         Console.WriteLine("\n>> Dekriptovana poruka:");
                         Console.WriteLine(decryptedMessage);
-                        Console.WriteLine($">> Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
+                        Console.WriteLine($"\nINFO: Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
 
                         StatisticsManager.DodajStatistiku("DES", decryptedMessage.Length, stopwatch.Elapsed.TotalMilliseconds);
 
-                        Console.WriteLine("\n>> Unesite eho poruku koju želite da pošaljete nazad klijentu:");
-                        string echoMessage = Console.ReadLine();
+                        string echoMessage = $"\"Primio sam poruku: {decryptedMessage}\"";
+                        Console.WriteLine($"\nINFO: Automatski šaljem eho poruku: {echoMessage}");
 
                         DesAlgorithm desAlgEcho = new DesAlgorithm(echoMessage, kljuc, iv);
                         byte[] encryptedMessage = desAlgEcho.Encrypt();
                         string base64EchoMessage = Convert.ToBase64String(encryptedMessage);
 
-                        Console.WriteLine("\n>> Enkriptovana eho poruka (Base64):");
-                        Console.WriteLine(base64EchoMessage);
-
                         serverSocket.SendTo(Encoding.UTF8.GetBytes(base64EchoMessage), clientEP);
+                        Console.WriteLine("INFO: Enkriptovani odgovor je poslat klijentu.");
+                        JeKraj();
 
                         Console.WriteLine("\n================================================================\n");
                     }
@@ -183,23 +182,21 @@ namespace ServerApp.Services
                 {
                     try
                     {
-                        Console.WriteLine("\n==================== SERVER UDP [RSA] KOMUNIKACIJA ====================");
-
-                        //int hashLength = 32;
+                        Console.WriteLine("\n\n\n\n\n================================================================");
 
                         int brBajta = serverSocket.ReceiveFrom(buffer, ref clientEP);
                         string clientPublicKeyBase64 = Encoding.UTF8.GetString(buffer, 0, brBajta);
                         string clientPublicKeyXml = Encoding.UTF8.GetString(Convert.FromBase64String(clientPublicKeyBase64));
-                        Console.WriteLine("\n>> Primljen javni ključ od klijenta.");
+                        Console.WriteLine("\nINFO: Primljen javni ključ od klijenta.");
 
                         string serverPublicKeyXml = RsaCryptoHelper.GetPublicKeyXml();
                         string serverPublicKeyBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(serverPublicKeyXml));
                         serverSocket.SendTo(Encoding.UTF8.GetBytes(serverPublicKeyBase64), clientEP);
-                        Console.WriteLine(">> Server je poslao svoj javni ključ klijentu.");
+                        Console.WriteLine("INFO: Server je poslao svoj javni ključ klijentu.");
 
                         brBajta = serverSocket.ReceiveFrom(buffer, ref clientEP);
                         string encryptedMessage = Encoding.UTF8.GetString(buffer, 0, brBajta);
-                        Console.WriteLine("\n>> Primljena enkriptovana poruka od klijenta.");
+                        Console.WriteLine("\nINFO: Primljena enkriptovana poruka od klijenta.");
 
                         var stopwatch = new Stopwatch();
                         stopwatch.Start();
@@ -210,20 +207,21 @@ namespace ServerApp.Services
 
                         stopwatch.Stop();
 
-                        Console.WriteLine(">> Dekriptovana poruka klijenta:");
+                        Console.WriteLine("\n>> Dekriptovana poruka klijenta:");
                         Console.WriteLine(decryptedMessage);
-                        Console.WriteLine($">> Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
+                        Console.WriteLine($"\nINFO: Vreme dekripcije: {stopwatch.Elapsed.TotalMilliseconds:F2} ms");
 
                         StatisticsManager.DodajStatistiku("RSA", decryptedMessage.Length, stopwatch.Elapsed.TotalMilliseconds);
 
-                        Console.Write("\n>> Unesite eho poruku za slanje klijentu: ");
-                        string echoMessage = Console.ReadLine();
+                        string echoMessage = $"\"Primio sam poruku: {decryptedMessage}\"";
+                        Console.WriteLine($"\nINFO: Automatski šaljem eho poruku: {echoMessage}");
 
                         var rsaEncryptor = new RsaAlgorithm(echoMessage, clientPublicKeyXml);
                         string encryptedResponse = rsaEncryptor.Encrypt();
 
                         serverSocket.SendTo(Encoding.UTF8.GetBytes(encryptedResponse), clientEP);
-                        Console.WriteLine(">> Enkriptovani odgovor je poslat klijentu.");
+                        Console.WriteLine("INFO: Enkriptovani odgovor je poslat klijentu.");
+                        JeKraj();
 
                         Console.WriteLine("\n=====================================================================");
                     }
@@ -231,6 +229,32 @@ namespace ServerApp.Services
                     {
                         Console.WriteLine($"\n>> Greška u UDP RSA komunikaciji: {ex.Message}");
                     }
+                }
+            }
+        }
+
+        private static void JeKraj()
+        {
+            while (true)
+            {
+                Console.Write("\n>> Da li želite da server nastavi sa radom? (Y/N): ");
+                var odgovor = Console.ReadLine()?.Trim().ToUpper();
+
+                if (odgovor == "N")
+                {
+                    StatisticsManager.PrikaziStatistiku();
+                    Console.ReadKey();
+                    Console.WriteLine("INFO: Program se zatvara...");
+                    Environment.Exit(0);
+                }
+                else if (odgovor == "Y")
+                {
+                    Console.WriteLine("INFO: Nastavljamo sa čekanjem naredne poruke...\n");
+                    break;
+                }
+                else
+                {
+                    Console.WriteLine("Nepoznat odgovor. Odgovorite sa Y/N.");
                 }
             }
         }

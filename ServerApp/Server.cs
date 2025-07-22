@@ -5,6 +5,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ServerApp
 {
@@ -23,31 +24,45 @@ namespace ServerApp
 
             Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             tcpSocket.Bind(tcp_serverEP);
-            tcpSocket.Listen(5);
-            Console.WriteLine($"TCP server slusa na {tcp_serverEP}");
+            tcpSocket.Listen(10);
+            Console.WriteLine($"INFO: TCP server sluša na {tcp_serverEP}");
 
             Socket udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             udpSocket.Bind(udp_serverEP);
-            Console.WriteLine($"UDP server slusa na {udp_serverEP}");
+            Console.WriteLine($"INFO: UDP server sluša na {udp_serverEP}");
 
-            List<Socket> socketsToCheck = new List<Socket> { tcpSocket, udpSocket };
-            Socket.Select(socketsToCheck, null, null, -1);
-            Socket activeSocket = socketsToCheck.First();
+            Console.WriteLine("-----------------------------------------");
 
-            if (activeSocket == tcpSocket)
+            List<Socket> socketsToCheck = new List<Socket>();
+
+            while (true)
             {
-                udpSocket.Close();
-                ServerCommunicationHandler.HandleTcp(tcpSocket, desHash, rsaHash);
-            }
-            else if (activeSocket == udpSocket)
-            {
-                tcpSocket.Close();
-                ServerCommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
-            }
+                socketsToCheck.Clear();
+                socketsToCheck.Add(tcpSocket);
+                socketsToCheck.Add(udpSocket);
 
-            StatisticsManager.PrikaziStatistiku();
+                Socket.Select(socketsToCheck, null, null, -1);
 
-            Console.ReadLine();
+                foreach (Socket activeSocket in socketsToCheck)
+                {
+                    if (activeSocket == tcpSocket)
+                    {
+                        Socket acceptedClient = tcpSocket.Accept();
+                        Console.WriteLine($"\nINFO: TCP klijent povezan: {acceptedClient.RemoteEndPoint}");
+
+                        Task.Run(() =>
+                        {
+                            ServerCommunicationHandler.HandleTcpClient(acceptedClient, desHash, rsaHash);
+                        });
+                    }
+                    else if (activeSocket == udpSocket)
+                    {
+                        ServerCommunicationHandler.HandleUdp(udpSocket, desHash, rsaHash);
+                    }
+                }
+            }
         }
     }
 }
+
+
